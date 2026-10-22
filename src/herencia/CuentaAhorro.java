@@ -4,32 +4,53 @@ package herencia;
 import java.util.Calendar;
 
 public class CuentaAhorro extends CuentaBancaria {
+
     private Calendar ultimaModif;
-    private int retirosRealizados=0;
-    private static final int MAX_RETIROS_MES=3;
-    
-    public CuentaAhorro(int numero, String cliente) {
-        super(numero, cliente, 0.03);
-        this.ultimaModif=Calendar.getInstance();
+
+    public CuentaAhorro(int numero, String cliente, String moneda) {
+        super(numero, cliente, moneda, TipoCuenta.DEAHORRO);
+        ultimaModif = Calendar.getInstance();
     }
-    
-    public boolean status(){
-        Calendar fechaActual=Calendar.getInstance();
+
+    public boolean status() {
+        Calendar fechaActual = Calendar.getInstance();
         fechaActual.add(Calendar.MONTH, -6);
-        return ultimaModif.after(fechaActual);
+
+        return !ultimaModif.before(fechaActual);
     }
-    
-    public void aplicarIntereses(){
-        if(status()){
-            double interes = saldo*tasa;
-            depositar(interes);
-            historial.add("Intereses aplicados: "+interes);
+
+    @Override
+    public void depositar(double monto) {
+        if (!status()) {
+            throw new IllegalStateException("Cuenta de ahorro inactiva");
         }
+
+        super.depositar(monto);
+        ultimaModif = Calendar.getInstance();
     }
-    
-    public void retirar(){
-        if(retirosRealizados<=MAX_RETIROS_MES){
-            
+
+    @Override
+    public boolean retirar(double monto) {
+        if (!status()) {
+            throw new IllegalStateException("Cuenta de ahorro inactiva");
         }
+
+        boolean resultado = super.retirar(monto);
+
+        if (resultado) {
+            ultimaModif = Calendar.getInstance();
+        }
+
+        return resultado;
+    }
+
+    @Override
+    public void quienSoy() {
+        System.out.println("CuentaAhorro");
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + " | Activa: " + status();
     }
 }
